@@ -5,7 +5,7 @@
 	"minAppVersion": "0.15.0",
 	"description": "Automatically imports cooksync highlights.",
 	"author": "Andreas Fürst",
-	"authorUrl": "https://cooksync.com",
-	"fundingUrl": "https://cooksync.com/pricing",
+	"authorUrl": "https://cooksync.app",
+	"fundingUrl": "https://cooksync.app/pricing",
 	"isDesktopOnly": false
 }

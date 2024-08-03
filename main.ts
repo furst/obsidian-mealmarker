@@ -1,9 +1,6 @@
 import {
 	App,
 	ButtonComponent,
-	Editor,
-	MarkdownView,
-	Modal,
 	Notice,
 	Plugin,
 	PluginSettingTab,
@@ -23,13 +20,6 @@ interface ExportRequestResponse {
 	status: string;
 }
 
-// interface ExportStatusResponse {
-// 	totalBooks: number,
-// 	booksExported: number,
-// 	isFinished: boolean,
-// 	taskStatus: string,
-// }
-
 interface CooksyncSettings {
 	token: string;
 	cooksyncDir: string;
@@ -38,8 +28,6 @@ interface CooksyncSettings {
 	lastSyncFailed: boolean;
 	lastSyncTime?: number;
 	recipeIDs: number[];
-	// lastSavedStatusID: number;
-	// currentSyncStatusID: number;
 }
 
 const DEFAULT_SETTINGS: CooksyncSettings = {
@@ -59,63 +47,6 @@ export default class Cooksync extends Plugin {
 	async onload() {
 		await this.loadSettings();
 
-		// Do not do this too often
-		//this.startSync();
-
-		// This creates an icon in the left ribbon.
-		// const ribbonIconEl = this.addRibbonIcon(
-		// 	"dice",
-		// 	"Sample Plugin",
-		// 	(evt: MouseEvent) => {
-		// 		// Called when the user clicks the icon.
-		// 		new Notice("This is a notice!");
-		// 	}
-		// );
-		// // Perform additional things with the ribbon
-		// ribbonIconEl.addClass("my-plugin-ribbon-class");
-
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		// const statusBarItemEl = this.addStatusBarItem();
-		// statusBarItemEl.setText("Status Bar Text");
-
-		// This adds a simple command that can be triggered anywhere
-		// this.addCommand({
-		// 	id: "open-sample-modal-simple",
-		// 	name: "Open sample modal (simple)",
-		// 	callback: () => {
-		// 		new SampleModal(this.app).open();
-		// 	},
-		// });
-		// This adds an editor command that can perform some operation on the current editor instance
-		// this.addCommand({
-		// 	id: "sample-editor-command",
-		// 	name: "Sample editor command",
-		// 	editorCallback: (editor: Editor, view: MarkdownView) => {
-		// 		console.log(editor.getSelection());
-		// 		editor.replaceSelection("Sample Editor Command");
-		// 	},
-		// });
-		// // This adds a complex command that can check whether the current state of the app allows execution of the command
-		// this.addCommand({
-		// 	id: "open-sample-modal-complex",
-		// 	name: "Open sample modal (complex)",
-		// 	checkCallback: (checking: boolean) => {
-		// 		// Conditions to check
-		// 		const markdownView =
-		// 			this.app.workspace.getActiveViewOfType(MarkdownView);
-		// 		if (markdownView) {
-		// 			// If checking is true, we're simply "checking" if the command can be run.
-		// 			// If checking is false, then we want to actually perform the operation.
-		// 			if (!checking) {
-		// 				new SampleModal(this.app).open();
-		// 			}
-
-		// 			// This command will only show up in Command Palette when the check function returns true
-		// 			return true;
-		// 		}
-		// 	},
-		// });
-
 		if (
 			this.settings.triggerOnLoad &&
 			(!this.settings.lastSyncTime ||
@@ -132,16 +63,10 @@ export default class Cooksync extends Plugin {
 			},
 		});
 
-		//TODO: add a command to resync recipe
+		//TODO: add a command to resync one recipe
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new CooksyncSettingTab(this.app, this));
-
-		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-		// Using this function will automatically remove the event listener when this plugin is disabled.
-		// this.registerDomEvent(document, "click", (evt: MouseEvent) => {
-		// 	console.log("click", evt);
-		// });
 
 		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
 		this.registerInterval(
@@ -170,18 +95,7 @@ export default class Cooksync extends Plugin {
 		};
 	}
 
-	// clearSettingsAfterRun() {
-	// 	this.settings.isSyncing = false;
-	// 	//this.settings.currentSyncStatusID = 0;
-	// }
-
 	getErrorMessageFromResponse(response?: Response) {
-		if (response && response.status === 409) {
-			return "Sync in progress initiated by different client";
-		}
-		if (response && response.status === 417) {
-			return "Obsidian export is locked. Wait for an hour.";
-		}
 		return `${response ? response.statusText : "Can't connect to server"}`;
 	}
 
@@ -192,19 +106,10 @@ export default class Cooksync extends Plugin {
 	) {
 		this.settings.isSyncing = false;
 		this.settings.lastSyncFailed = false;
-		//this.settings.currentSyncStatusID = 0;
-		// if (exportID) {
-		// 	this.settings.lastSavedStatusID = exportID;
-		// }
+
 		this.saveSettings();
-		// if we have a button context, update the text on it
-		// this is the case if we fired on a "Run sync" click (the button)
+
 		if (buttonContext) {
-			// this.showInfoStatus(
-			// 	buttonContext.buttonEl.parentNode.parentElement,
-			// 	msg,
-			// 	"rw-success"
-			// );
 			buttonContext.buttonEl.setText("Run sync");
 		}
 	}
@@ -214,11 +119,6 @@ export default class Cooksync extends Plugin {
 		this.settings.lastSyncFailed = true;
 		this.saveSettings();
 		if (buttonContext) {
-			// this.showInfoStatus(
-			// 	buttonContext.buttonEl.parentElement,
-			// 	msg,
-			// 	"rw-error"
-			// );
 			buttonContext.buttonEl.setText("Run sync");
 		} else {
 			new Notice(msg);
@@ -248,15 +148,11 @@ export default class Cooksync extends Plugin {
 
 			// If data, then we have new data to add
 			if (data) {
-				//new Notice("Syncing Cooksync data");
+				// new Notice("Syncing Cooksync data");
 				// const statusBarItemEl = this.addStatusBarItem();
 				// statusBarItemEl.setText("Cooksync: Syncing data");
 				// Parse response and save to Obsidian
 				this.downloadData(data, buttonContext);
-				//this.handleSyncSuccess(buttonContext);
-				// new Notice(
-				// 	"Latest Readwise sync already happened on your other device. Data should be up to date"
-				// );
 			}
 
 			// If no data, then we are up to date
@@ -267,15 +163,6 @@ export default class Cooksync extends Plugin {
 			}
 
 			await this.saveSettings();
-			// if (response.status === 201) {
-			// 	new Notice("Syncing Cooksync data");
-			// 	//return this.getExportStatus(data.latest_id, buttonContext);
-			// } else {
-			// 	this.handleSyncSuccess(buttonContext, "Synced");
-			// 	new Notice(
-			// 		"Latest Readwise sync already happened on your other device. Data should be up to date"
-			// 	);
-			// }
 		} else {
 			console.log(
 				"Cooksync plugin: bad response in requestData: ",
@@ -322,13 +209,6 @@ export default class Cooksync extends Plugin {
 				let originalName = processedFileName;
 				let contentToSave = content;
 
-				//let split = processedFileName.split("--");
-				// if (split.length > 1) {
-				// 	originalName = split.slice(0, -1).join("--") + ".md";
-				// 	bookID = split.last().match(/\d+/g)[0];
-				// 	this.settings.booksIDsMap[originalName] = bookID;
-				// }
-
 				const extension = originalName.split(".").pop();
 				const baseName = originalName.replace(`.${extension}`, "");
 				let count = 1;
@@ -343,22 +223,12 @@ export default class Cooksync extends Plugin {
 				await this.saveSettings();
 
 				new Notice("Cooksync: sync completed");
-				// if (await this.fs.exists(originalName)) {
-				// 	// if the file already exists we will not do anything
-				// 	return;
-				// 	// const existingContent = await this.fs.read(originalName);
-				// 	// contentToSave = existingContent + content;
-				// }
-				//await this.fs.write(originalName, contentToSave);
-				//this.settings.recipeIDs.push(entry.id);
-				//await this.saveSettings();
 			} catch (e) {
 				console.log(`Cooksync: error writing ${processedFileName}:`, e);
 				new Notice(`Error writing file ${processedFileName}: ${e}`);
 			}
 		}
 
-		//await this.acknowledgeSyncCompleted(buttonContext);
 		this.handleSyncSuccess(buttonContext);
 	}
 
@@ -440,22 +310,6 @@ export default class Cooksync extends Plugin {
 	}
 }
 
-// class SampleModal extends Modal {
-// 	constructor(app: App) {
-// 		super(app);
-// 	}
-
-// 	onOpen() {
-// 		const { contentEl } = this;
-// 		contentEl.setText("Woah!");
-// 	}
-
-// 	onClose() {
-// 		const { contentEl } = this;
-// 		contentEl.empty();
-// 	}
-// }
-
 class CooksyncSettingTab extends PluginSettingTab {
 	plugin: Cooksync;
 
@@ -472,7 +326,7 @@ class CooksyncSettingTab extends PluginSettingTab {
 		containerEl.createEl("h1", { text: "Cooksync" });
 		containerEl.createEl("p", { text: "Created by " }).createEl("a", {
 			text: "Cooksync",
-			href: "https://cooksync.com",
+			href: "https://cooksync.app",
 		});
 		containerEl.createEl("h2", { text: "Settings" });
 
@@ -494,31 +348,8 @@ class CooksyncSettingTab extends PluginSettingTab {
 								this.display();
 							}
 						});
-					// button
-					// 	.setButtonText("Connect")
-					// 	.setCta()
-					// 	.onClick(() => {
-					// 		new Notice("I've been clicked!");
-					// 	});
-
-					// button.setButtonText("Connect").setCta().onClick(async (evt) => {
-					// 	const success = await this.plugin.getUserAuthToken(evt.target as HTMLElement);
-					// 	if (success) {
-					// 	  this.display();
-					// 	}
-					//   });
 				});
 		}
-
-		// .addText((text) =>
-		// 	text
-		// 		.setPlaceholder("Enter your secret")
-		// 		.setValue(this.plugin.settings.mySetting)
-		// 		.onChange(async (value) => {
-		// 			this.plugin.settings.mySetting = value;
-		// 			await this.plugin.saveSettings();
-		// 		})
-		// );
 
 		if (this.plugin.settings.token) {
 			new Setting(containerEl)
@@ -537,7 +368,6 @@ class CooksyncSettingTab extends PluginSettingTab {
 							if (this.plugin.settings.isSyncing) {
 								new Notice("Sync already in progress");
 							} else {
-								//this.plugin.clearInfoStatus(containerEl);
 								this.plugin.settings.isSyncing = true;
 								await this.plugin.saveData(
 									this.plugin.settings
@@ -574,19 +404,6 @@ class CooksyncSettingTab extends PluginSettingTab {
 						})
 				);
 
-			// .addSearch((search) =>
-			// 	search
-
-			// 		.setPlaceholder("Defaults to: Cooksync")
-			// 		.setValue(this.plugin.settings.cooksyncDir)
-			// 		.onChange(async (value) => {
-			// 			this.plugin.settings.cooksyncDir = normalizePath(
-			// 				value || "Cooksync"
-			// 			);
-			// 			await this.plugin.saveSettings();
-			// 		})
-			// );
-
 			new Setting(containerEl)
 				.setName("Sync automatically when Obsidian opens")
 				.setDesc(
@@ -603,6 +420,6 @@ class CooksyncSettingTab extends PluginSettingTab {
 
 		const help = containerEl.createEl("p");
 		help.innerHTML =
-			"Issues? Please email us at <a href='mailto:info@cooksync.com'>info@cooksync.com</a>.";
+			"Issues? Please email us at <a href='mailto:info@cooksync.app'>info@cooksync.app</a>.";
 	}
 }
